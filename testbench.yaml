@@ -1,0 +1,24 @@
+laravel: '@testbench'
+
+migrations:
+  - workbench/database/migrations
+
+providers:
+  - BBSLab\FilamentOkta\FilamentOktaServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
+  - Workbench\App\Providers\AdminPanelProvider
+  - Workbench\App\Providers\StaffPanelProvider
+
+workbench:
+  build:
+    - package:discover
+    - create-sqlite-db
+    - db:wipe
+    - migrate:refresh
+    - db:seed:
+        --class: 'Workbench\Database\Seeders\DatabaseSeeder'
+  sync: []
+
+purge:
+  directories:
+    - lang/*
