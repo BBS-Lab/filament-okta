@@ -43,10 +43,10 @@ public function panel(Panel $panel): Panel
 
 In your Okta admin, create an **OIDC / Web** application and set:
 
-- **Sign-in redirect URI**: `{APP_URL}/{panel-path}/okta/callback`
-- **Sign-out redirect URI**: `{APP_URL}/{panel-path}/okta/callback/logout`
+- **Sign-in redirect URI**: `{APP_URL}/{panel-path}/authorization-code/callback`
+- **Sign-out redirect URI**: `{APP_URL}/{panel-path}/authorization-code/callback/logout`
 
-where `{panel-path}` is the panel's path (e.g. `admin`).
+where `{panel-path}` is the panel's path (e.g. `admin`). These paths are configurable per panel — see [Per-panel configuration](#per-panel-configuration).
 
 ### Credentials
 
@@ -56,16 +56,16 @@ Add the `okta` block to `config/services.php` (the package intentionally does no
 'okta' => [
     'client_id' => env('OKTA_CLIENT_ID'),
     'client_secret' => env('OKTA_CLIENT_SECRET'),
-    'redirect' => env('OKTA_REDIRECT_URI'), // optional — derived per panel from its okta/callback route
+    'redirect' => env('OKTA_REDIRECT_URI'), // optional — derived per panel from its callback route
     'base_url' => env('OKTA_BASE_URL'),
 ],
 ```
 
 **`OKTA_REDIRECT_URI` is optional.** The redirect URI is a route this package generates, so it is
 derived automatically — and because the plugin is per panel, **each panel derives its own** callback
-(`/{panel-path}/okta/callback`). You only declare each panel's matching **Sign-in redirect URI** in
-Okta. A panel with its own Okta application registers its own Socialite driver and `services.*` block;
-set a `redirect` there only to override the derived URL (e.g. behind a reverse proxy).
+(`/{panel-path}/authorization-code/callback`). You only declare each panel's matching **Sign-in
+redirect URI** in Okta. A panel with its own Okta application registers its own Socialite driver and
+`services.*` block; set a `redirect` there only to override the derived URL (e.g. behind a reverse proxy).
 
 ## Per-panel configuration
 
@@ -79,9 +79,19 @@ option left unset falls back to the shared `config('okta.*')` of the base packag
         ->ssoLogout(true)                 // logout ends the Okta session (OIDC end-session)
         ->requireVerifiedEmail(true)      // reject unverified Okta emails
         ->identifierColumn('okta_id')     // match on the stable Okta "sub" first
-        ->identifierUpdate(true),         // backfill the column on first verified match
+        ->identifierUpdate(true)          // backfill the column on first verified match
+        ->paths(                          // route paths (after the panel path); omit any to keep its default
+            login: 'authorization-code/redirect',
+            callback: 'authorization-code/callback',
+            logout: 'authorization-code/logout',
+            callbackLogout: 'authorization-code/callback/logout',
+        ),
 )
 ```
+
+> `paths()` sets only the arguments you pass; the rest fall back to the shared `config('okta.paths.*')`
+> then the built-in defaults above. The route **names** never change, so the login button and the
+> derived redirect URI follow automatically — but a changed callback path must be re-whitelisted in Okta.
 
 A second panel can activate the plugin with entirely different values — each panel mounts its own
 `filament-okta.{panelId}.*` routes and resolves its own configuration per request.
@@ -117,16 +127,16 @@ login screen with an error notification (rather than a 500).
 
 For each panel that activates the plugin, these routes are mounted. **Every URI is prefixed by that
 panel's path** (`$panel->getPath()`, read at boot) — so a panel at `/backend-panel` gets
-`/backend-panel/okta/callback`. Below, `{panel-path}` is that prefix and `{panel}` is the panel id:
+`/backend-panel/authorization-code/callback`. Below, `{panel-path}` is that prefix and `{panel}` is the panel id:
 
-| Route (URI) | Name | Purpose |
+| Route (default URI) | Name | Purpose |
 |-------------|------|---------|
-| `GET {panel-path}/okta/login` | `filament-okta.{panel}.login` | Redirects to Okta (start login). |
-| `GET {panel-path}/okta/callback` | `filament-okta.{panel}.callback` | Login callback — resolves the user and logs them in (the Sign-in redirect URI target). |
-| `GET {panel-path}/okta/logout` | `filament-okta.{panel}.logout` | Logs out locally, and — when SSO logout is on — via Okta's OIDC end-session. |
-| `GET {panel-path}/okta/callback/logout` | `filament-okta.{panel}.callback.logout` | Okta's post-logout landing. |
+| `GET {panel-path}/authorization-code/redirect` | `filament-okta.{panel}.login` | Redirects to Okta (start login). |
+| `GET {panel-path}/authorization-code/callback` | `filament-okta.{panel}.callback` | Login callback — resolves the user and logs them in (the Sign-in redirect URI target). |
+| `GET {panel-path}/authorization-code/logout` | `filament-okta.{panel}.logout` | Logs out locally, and — when SSO logout is on — via Okta's OIDC end-session. |
+| `GET {panel-path}/authorization-code/callback/logout` | `filament-okta.{panel}.callback.logout` | Okta's post-logout landing. |
 
-The route **names** use the panel **id** (stable whatever the path), so reference them with `route('filament-okta.'.$panel->getId().'.login')` rather than hard-coding a URI.
+The `authorization-code/*` paths are **configurable per panel** via `OktaPlugin::make()->paths(...)` (see above). The route **names** use the panel **id** (stable whatever the path), so reference them with `route('filament-okta.'.$panel->getId().'.login')` rather than hard-coding a URI.
 
 ## User resolution, gating & lifecycle hooks
 

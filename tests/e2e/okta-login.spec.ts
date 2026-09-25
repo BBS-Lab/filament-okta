@@ -5,18 +5,18 @@ import { expect, test } from '@playwright/test';
 // controls before handing off to Okta).
 
 test.describe('Okta login on a Filament panel', () => {
-    test('the admin login screen shows the Okta button linking to okta/login', async ({ page }) => {
+    test('the admin login screen shows the Okta button linking to the login route', async ({ page }) => {
         await page.goto('/admin/login');
 
         const button = page.locator('#filament-okta-login');
 
         await expect(button).toBeVisible();
         await expect(button).toContainText('Log In with Okta');
-        await expect(button).toHaveAttribute('href', /\/admin\/okta\/login$/);
+        await expect(button).toHaveAttribute('href', /\/admin\/authorization-code\/redirect$/);
     });
 
-    test('okta/login starts the Okta OIDC authorization redirect', async ({ request }) => {
-        const response = await request.get('/admin/okta/login', { maxRedirects: 0 });
+    test('the login route starts the Okta OIDC authorization redirect', async ({ request }) => {
+        const response = await request.get('/admin/authorization-code/redirect', { maxRedirects: 0 });
 
         expect(response.status()).toBe(302);
         expect(response.headers()['location']).toContain('example.okta.com');
@@ -28,7 +28,7 @@ test.describe('Okta login on a Filament panel', () => {
         await page.goto('/staff/login');
 
         await expect(page.locator('#filament-okta-login'))
-            .toHaveAttribute('href', /\/staff\/okta\/login$/);
+            .toHaveAttribute('href', /\/staff\/authorization-code\/redirect$/);
     });
 
     test('the Okta button adopts each panel primary colour', async ({ page }) => {

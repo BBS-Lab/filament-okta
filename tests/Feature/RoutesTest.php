@@ -23,7 +23,7 @@ it('registers the okta routes for the panel', function (): void {
 
 it('mounts the okta routes under the panel path', function (): void {
     expect(Route::getRoutes()->getByName('filament-okta.admin.login')->uri())
-        ->toBe('admin/okta/login');
+        ->toBe('admin/authorization-code/redirect');
 });
 
 it('redirects to okta to start the login', function (): void {

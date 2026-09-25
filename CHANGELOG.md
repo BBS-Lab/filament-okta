@@ -2,6 +2,27 @@
 
 All notable changes to `bbs-lab/filament-okta` will be documented in this file.
 
+## v2.0.0 - 2026-09-25
+
+### ⚠️ Breaking
+
+- Requires [`bbs-lab/laravel-okta` v2.0](https://github.com/BBS-Lab/laravel-okta/releases/tag/v2.0.0), which **changes the default Okta route paths** from `okta/*` to `authorization-code/*`:
+
+  | Purpose | Before | After (default) |
+  |---------|--------|-----------------|
+  | Login | `{panel-path}/okta/login` | `{panel-path}/authorization-code/redirect` |
+  | Callback (redirect URI) | `{panel-path}/okta/callback` | `{panel-path}/authorization-code/callback` |
+  | Logout | `{panel-path}/okta/logout` | `{panel-path}/authorization-code/logout` |
+  | Post-logout landing | `{panel-path}/okta/callback/logout` | `{panel-path}/authorization-code/callback/logout` |
+
+  **Action required:** update each panel's **Sign-in** and **Sign-out redirect URIs** in the Okta admin console, or logins fail with a `redirect_uri` mismatch (400). An explicit `services.{driver}.redirect` still wins.
+
+- The route **names are unchanged** (`filament-okta.{panel}.login`, `.callback`, `.logout`, `.callback.logout`), so the login button and the derived redirect URI keep working.
+
+### ✨ Added
+
+- **Per-panel route paths** via `OktaPlugin::make()->paths(login: …, callback: …, logout: …, callbackLogout: …)`. Only the arguments you pass are overridden; the rest fall back to the shared `config('okta.paths.*')` then the defaults above. `FilamentOktaPanel` exposes them through the new `OktaPanel::path()` seam.
+
 ## v1.0.0 - 2026-09-23
 
 Okta SSO for Filament — the Filament adapter for [bbs-lab/laravel-okta](https://github.com/BBS-Lab/laravel-okta).

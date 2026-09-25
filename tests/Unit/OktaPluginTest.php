@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use BBSLab\FilamentOkta\OktaPlugin;
+use BBSLab\LaravelOkta\Enums\OktaRoute;
 
 it('has the expected id', function (): void {
     expect(OktaPlugin::make()->getId())->toBe('filament-okta');
@@ -108,4 +109,50 @@ it('defaults every behaviour flag to true when the config key is absent', functi
         ->and($plugin->getRequireVerifiedEmail())->toBeTrue()
         ->and($plugin->getIdentifierUpdate())->toBeTrue()
         ->and($plugin->getIdentifierColumn())->toBeNull();
+});
+
+it('defaults each okta route path to the enum default', function (): void {
+    config(['okta' => []]);
+
+    $plugin = OktaPlugin::make();
+
+    expect($plugin->getPath(OktaRoute::Login))->toBe('authorization-code/redirect')
+        ->and($plugin->getPath(OktaRoute::Callback))->toBe('authorization-code/callback')
+        ->and($plugin->getPath(OktaRoute::Logout))->toBe('authorization-code/logout')
+        ->and($plugin->getPath(OktaRoute::CallbackLogout))->toBe('authorization-code/callback/logout');
+});
+
+it('overrides only the paths passed, leaving the rest at their default (per panel)', function (): void {
+    $plugin = OktaPlugin::make()->paths(login: 'sso/go', callback: 'sso/back');
+
+    expect($plugin->getPath(OktaRoute::Login))->toBe('sso/go')
+        ->and($plugin->getPath(OktaRoute::Callback))->toBe('sso/back')
+        // logout / callback_logout were not passed → untouched defaults.
+        ->and($plugin->getPath(OktaRoute::Logout))->toBe('authorization-code/logout')
+        ->and($plugin->getPath(OktaRoute::CallbackLogout))->toBe('authorization-code/callback/logout');
+});
+
+it('applies a per-panel override to the logout and post-logout paths too', function (): void {
+    $plugin = OktaPlugin::make()->paths(logout: 'sso/out', callbackLogout: 'sso/out/done');
+
+    expect($plugin->getPath(OktaRoute::Logout))->toBe('sso/out')
+        ->and($plugin->getPath(OktaRoute::CallbackLogout))->toBe('sso/out/done');
+});
+
+it('prefers a per-panel path over the shared config, and config over the default', function (): void {
+    config(['okta.paths.login' => 'config/login']);
+
+    // Unset on the plugin → shared config wins; set on the plugin → the plugin wins.
+    expect(OktaPlugin::make()->getPath(OktaRoute::Login))->toBe('config/login')
+        ->and(OktaPlugin::make()->paths(login: 'panel/login')->getPath(OktaRoute::Login))->toBe('panel/login');
+});
+
+it('trims surrounding slashes and falls back to the default when a value is empty', function (): void {
+    config(['okta.paths.callback' => '', 'okta.paths.logout' => '/x/y/']);
+
+    $plugin = OktaPlugin::make()->paths(login: '/panel/login/');
+
+    expect($plugin->getPath(OktaRoute::Login))->toBe('panel/login')                    // trimmed per-panel value
+        ->and($plugin->getPath(OktaRoute::Callback))->toBe('authorization-code/callback') // empty config → default
+        ->and($plugin->getPath(OktaRoute::Logout))->toBe('x/y');                        // trimmed config value
 });

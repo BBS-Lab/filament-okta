@@ -6,6 +6,7 @@ namespace BBSLab\FilamentOkta\Support;
 
 use BBSLab\FilamentOkta\OktaPlugin;
 use BBSLab\LaravelOkta\Contracts\OktaPanel;
+use BBSLab\LaravelOkta\Enums\OktaRoute;
 use Filament\Notifications\Notification;
 use Filament\Panel;
 use Illuminate\Http\Request;
@@ -59,6 +60,11 @@ class FilamentOktaPanel implements OktaPanel
     public function socialiteDriver(): string
     {
         return $this->plugin->getSocialiteDriver();
+    }
+
+    public function path(OktaRoute $route): string
+    {
+        return $this->plugin->getPath($route);
     }
 
     public function flashError(string $message): void
