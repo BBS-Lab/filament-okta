@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BBSLab\FilamentOkta;
 
+use BBSLab\LaravelOkta\Enums\OktaRoute;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\View\PanelsRenderHook;
@@ -33,6 +34,14 @@ class OktaPlugin implements Plugin
     protected ?string $identifierColumn = null;
 
     protected ?bool $identifierUpdate = null;
+
+    /**
+     * Per-panel path overrides, keyed by {@see OktaRoute} value. Any route left
+     * unset falls back to the shared config('okta.paths.*'), then the enum default.
+     *
+     * @var array<string, string>
+     */
+    protected array $paths = [];
 
     public static function make(): static
     {
@@ -93,6 +102,33 @@ class OktaPlugin implements Plugin
         return $this;
     }
 
+    /**
+     * Set this panel's Okta route paths (the part after the panel path). Only the
+     * arguments you pass are overridden; the rest keep the shared config / default.
+     * The route names never change, so the login button and redirect URI follow.
+     */
+    public function paths(
+        ?string $login = null,
+        ?string $callback = null,
+        ?string $logout = null,
+        ?string $callbackLogout = null,
+    ): static {
+        $overrides = [
+            OktaRoute::Login->value => $login,
+            OktaRoute::Callback->value => $callback,
+            OktaRoute::Logout->value => $logout,
+            OktaRoute::CallbackLogout->value => $callbackLogout,
+        ];
+
+        foreach ($overrides as $key => $value) {
+            if ($value !== null) {
+                $this->paths[$key] = $value;
+            }
+        }
+
+        return $this;
+    }
+
     public function getSocialiteDriver(): string
     {
         return $this->socialiteDriver;
@@ -118,5 +154,17 @@ class OktaPlugin implements Plugin
     public function getIdentifierUpdate(): bool
     {
         return $this->identifierUpdate ?? (bool) config('okta.identifier.update', true);
+    }
+
+    /**
+     * The URI a given Okta route mounts at for this panel: the per-panel override,
+     * else the shared config('okta.paths.*'), else the enum default. Trimmed of
+     * surrounding slashes so it joins cleanly under the panel path.
+     */
+    public function getPath(OktaRoute $route): string
+    {
+        $configured = $this->paths[$route->value] ?? config('okta.paths.'.$route->value);
+
+        return is_string($configured) && $configured !== '' ? trim($configured, '/') : $route->defaultPath();
     }
 }

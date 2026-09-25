@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use BBSLab\FilamentOkta\OktaPlugin;
 use BBSLab\FilamentOkta\Support\FilamentOktaPanel;
+use BBSLab\LaravelOkta\Enums\OktaRoute;
 use Filament\Facades\Filament;
 use Filament\Panel;
 use Illuminate\Http\Request;
@@ -67,6 +68,19 @@ it('reuses the panel middleware including the panel-context middleware', functio
     expect(oktaPanelFor('admin')->middleware())
         ->toContain('panel:admin')
         ->toContain('web');
+});
+
+it('forwards each route path to the plugin — default and per-panel override', function (): void {
+    // admin's plugin leaves paths unset → the enum defaults come through.
+    expect(oktaPanelFor('admin')->path(OktaRoute::Login))->toBe('authorization-code/redirect')
+        ->and(oktaPanelFor('admin')->path(OktaRoute::Callback))->toBe('authorization-code/callback');
+
+    // A panel whose plugin overrides a path exposes it through the OktaPanel seam.
+    $plugin = OktaPlugin::make()->paths(login: 'sso/go');
+    $okta = new FilamentOktaPanel(Panel::make()->id('pathtest')->path('pathtest')->plugin($plugin), $plugin);
+
+    expect($okta->path(OktaRoute::Login))->toBe('sso/go')
+        ->and($okta->path(OktaRoute::Callback))->toBe('authorization-code/callback');
 });
 
 it('carries each panel own okta configuration', function (): void {

@@ -6,6 +6,7 @@ use BBSLab\FilamentOkta\OktaPlugin;
 use BBSLab\FilamentOkta\Support\FilamentOktaPanel;
 use BBSLab\LaravelOkta\Contracts\OktaPanel;
 use BBSLab\LaravelOkta\Support\NullOktaPanel;
+use BBSLab\LaravelOkta\Support\OktaRoutes;
 use Filament\Contracts\Plugin;
 use Filament\Facades\Filament;
 use Filament\Panel;
@@ -21,7 +22,22 @@ uses(RefreshDatabase::class);
 it('mounts a distinct okta route set for each panel that activates the plugin', function (): void {
     expect(Route::has('filament-okta.admin.login'))->toBeTrue()
         ->and(Route::has('filament-okta.staff.login'))->toBeTrue()
-        ->and(Route::getRoutes()->getByName('filament-okta.staff.login')->uri())->toBe('staff/okta/login');
+        ->and(Route::getRoutes()->getByName('filament-okta.staff.login')->uri())->toBe('staff/authorization-code/redirect');
+});
+
+it('mounts a panel okta routes at the paths its plugin configures (per panel)', function (): void {
+    $plugin = OktaPlugin::make()->paths(login: 'sso/go', callback: 'sso/back');
+    $panel = Panel::make()->id('pathpanel')->path('backoffice')->plugin($plugin);
+
+    OktaRoutes::register(new FilamentOktaPanel($panel, $plugin));
+
+    $uri = fn (string $name): string => (string) collect(Route::getRoutes()->getRoutes())
+        ->first(fn ($route) => $route->getName() === $name)?->uri();
+
+    expect($uri('filament-okta.pathpanel.login'))->toBe('backoffice/sso/go')
+        ->and($uri('filament-okta.pathpanel.callback'))->toBe('backoffice/sso/back')
+        // an unset path still lands on the default under this panel's path
+        ->and($uri('filament-okta.pathpanel.logout'))->toBe('backoffice/authorization-code/logout');
 });
 
 it('starts login through each panel own socialite driver', function (): void {

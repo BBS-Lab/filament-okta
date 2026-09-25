@@ -10,7 +10,7 @@ uses(RefreshDatabase::class);
  * Browser (Pest v4) coverage of the pre-redirect login UX. The full SSO
  * round-trip cannot be driven end to end without a real Okta org, so these
  * scenarios assert the login screen renders the Okta button and that it targets
- * the panel's okta/login route (which starts the OIDC redirect).
+ * the panel's login route (which starts the OIDC redirect).
  */
 it('shows the Log In with Okta button on the admin panel login', function (): void {
     $page = visit(route('filament.admin.auth.login'));
@@ -35,5 +35,5 @@ it('renders the visible Okta button on the staff panel login', function (): void
 
     $page->assertSee('Log In with Okta')
         ->assertPresent('#filament-okta-login')
-        ->assertAttributeContains('#filament-okta-login', 'href', '/staff/okta/login');
+        ->assertAttributeContains('#filament-okta-login', 'href', '/staff/authorization-code/redirect');
 });
