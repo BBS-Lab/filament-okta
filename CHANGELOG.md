@@ -2,6 +2,21 @@
 
 All notable changes to `bbs-lab/filament-okta` will be documented in this file.
 
+## v3.0.0 - 2026-09-29
+
+### ⚠️ Breaking
+
+- Requires [`bbs-lab/laravel-okta` v3.0](https://github.com/BBS-Lab/laravel-okta/releases/tag/v3.0.0), which **aligns the default logout paths on the common Okta convention**: the sign-out redirect URI now defaults to `{panel-path}/authorization-code/logout` (was `…/authorization-code/callback/logout`), and the RP-initiated initiator moves to `{panel-path}/authorization-code/logout/redirect` (was `…/authorization-code/logout`).
+
+  | Purpose | v2.0.0 | v3.0.0 (default) |
+  |---------|--------|------------------|
+  | Sign-out redirect URI (`filament-okta.{panel}.callback.logout`) | `{panel-path}/authorization-code/callback/logout` | `{panel-path}/authorization-code/logout` |
+  | Logout initiator (`filament-okta.{panel}.logout`) | `{panel-path}/authorization-code/logout` | `{panel-path}/authorization-code/logout/redirect` |
+
+  **Upgrading:** from v1.x or a standard Okta app already whitelisting `authorization-code/logout`, nothing to do. From v2.0.0, point each panel's Okta **Sign-out redirect URI** at `{panel-path}/authorization-code/logout` (or override per panel via `OktaPlugin::make()->paths(callbackLogout: '…')`).
+
+- Route **names are unchanged** (`filament-okta.{panel}.logout`, `.callback.logout`) and `OktaPlugin::paths()` keeps its `logout:` / `callbackLogout:` args; `route('filament-okta.{panel}.logout')` still initiates logout. Deliberate name↔URI inversion, documented in the base package. Note the arg semantics: `callbackLogout:` now sets the primary landing at `/logout`, `logout:` the `/logout/redirect` initiator.
+
 ## v2.0.0 - 2026-09-25
 
 ### ⚠️ Breaking

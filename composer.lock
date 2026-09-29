@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "03b80339c6278e15d68fad7da55dbc28",
+    "content-hash": "f28a11d507b3f61491e5123516bac940",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -73,16 +73,16 @@
         },
         {
             "name": "bbs-lab/laravel-okta",
-            "version": "v2.0.0",
+            "version": "v3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BBS-Lab/laravel-okta.git",
-                "reference": "5fc80ea9b18df5bfafab7f6d0a79274678f824e2"
+                "reference": "45052e52669d465e7c03800ca53ceb7182356ec2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BBS-Lab/laravel-okta/zipball/5fc80ea9b18df5bfafab7f6d0a79274678f824e2",
-                "reference": "5fc80ea9b18df5bfafab7f6d0a79274678f824e2",
+                "url": "https://api.github.com/repos/BBS-Lab/laravel-okta/zipball/45052e52669d465e7c03800ca53ceb7182356ec2",
+                "reference": "45052e52669d465e7c03800ca53ceb7182356ec2",
                 "shasum": ""
             },
             "require": {
@@ -150,9 +150,9 @@
             ],
             "support": {
                 "issues": "https://github.com/BBS-Lab/laravel-okta/issues",
-                "source": "https://github.com/BBS-Lab/laravel-okta/tree/v2.0.0"
+                "source": "https://github.com/BBS-Lab/laravel-okta/tree/v3.0.0"
             },
-            "time": "2026-09-25T15:04:28+00:00"
+            "time": "2026-09-29T12:34:33+00:00"
         },
         {
             "name": "blade-ui-kit/blade-heroicons",

@@ -44,7 +44,7 @@ public function panel(Panel $panel): Panel
 In your Okta admin, create an **OIDC / Web** application and set:
 
 - **Sign-in redirect URI**: `{APP_URL}/{panel-path}/authorization-code/callback`
-- **Sign-out redirect URI**: `{APP_URL}/{panel-path}/authorization-code/callback/logout`
+- **Sign-out redirect URI**: `{APP_URL}/{panel-path}/authorization-code/logout`
 
 where `{panel-path}` is the panel's path (e.g. `admin`). These paths are configurable per panel — see [Per-panel configuration](#per-panel-configuration).
 
@@ -83,8 +83,8 @@ option left unset falls back to the shared `config('okta.*')` of the base packag
         ->paths(                          // route paths (after the panel path); omit any to keep its default
             login: 'authorization-code/redirect',
             callback: 'authorization-code/callback',
-            logout: 'authorization-code/logout',
-            callbackLogout: 'authorization-code/callback/logout',
+            logout: 'authorization-code/logout/redirect',
+            callbackLogout: 'authorization-code/logout',
         ),
 )
 ```
@@ -133,10 +133,12 @@ panel's path** (`$panel->getPath()`, read at boot) — so a panel at `/backend-p
 |-------------|------|---------|
 | `GET {panel-path}/authorization-code/redirect` | `filament-okta.{panel}.login` | Redirects to Okta (start login). |
 | `GET {panel-path}/authorization-code/callback` | `filament-okta.{panel}.callback` | Login callback — resolves the user and logs them in (the Sign-in redirect URI target). |
-| `GET {panel-path}/authorization-code/logout` | `filament-okta.{panel}.logout` | Logs out locally, and — when SSO logout is on — via Okta's OIDC end-session. |
-| `GET {panel-path}/authorization-code/callback/logout` | `filament-okta.{panel}.callback.logout` | Okta's post-logout landing. |
+| `GET {panel-path}/authorization-code/logout/redirect` | `filament-okta.{panel}.logout` | Logs out locally, and — when SSO logout is on — via Okta's OIDC end-session. |
+| `GET {panel-path}/authorization-code/logout` | `filament-okta.{panel}.callback.logout` | Okta's post-logout landing (this is the Sign-out redirect URI target). |
 
 The `authorization-code/*` paths are **configurable per panel** via `OktaPlugin::make()->paths(...)` (see above). The route **names** use the panel **id** (stable whatever the path), so reference them with `route('filament-okta.'.$panel->getId().'.login')` rather than hard-coding a URI.
+
+> **Logout name↔URI inversion (by design).** `filament-okta.{panel}.logout` *initiates* logout but mounts at the nested `authorization-code/logout/redirect`, while the post-logout landing `.callback.logout` mounts at the short `authorization-code/logout` (the Okta sign-out redirect URI). Reference routes by name; do not swap the pairing.
 
 ## User resolution, gating & lifecycle hooks
 
