@@ -118,8 +118,8 @@ it('defaults each okta route path to the enum default', function (): void {
 
     expect($plugin->getPath(OktaRoute::Login))->toBe('authorization-code/redirect')
         ->and($plugin->getPath(OktaRoute::Callback))->toBe('authorization-code/callback')
-        ->and($plugin->getPath(OktaRoute::Logout))->toBe('authorization-code/logout')
-        ->and($plugin->getPath(OktaRoute::CallbackLogout))->toBe('authorization-code/callback/logout');
+        ->and($plugin->getPath(OktaRoute::Logout))->toBe('authorization-code/logout/redirect')
+        ->and($plugin->getPath(OktaRoute::CallbackLogout))->toBe('authorization-code/logout');
 });
 
 it('overrides only the paths passed, leaving the rest at their default (per panel)', function (): void {
@@ -128,8 +128,8 @@ it('overrides only the paths passed, leaving the rest at their default (per pane
     expect($plugin->getPath(OktaRoute::Login))->toBe('sso/go')
         ->and($plugin->getPath(OktaRoute::Callback))->toBe('sso/back')
         // logout / callback_logout were not passed → untouched defaults.
-        ->and($plugin->getPath(OktaRoute::Logout))->toBe('authorization-code/logout')
-        ->and($plugin->getPath(OktaRoute::CallbackLogout))->toBe('authorization-code/callback/logout');
+        ->and($plugin->getPath(OktaRoute::Logout))->toBe('authorization-code/logout/redirect')
+        ->and($plugin->getPath(OktaRoute::CallbackLogout))->toBe('authorization-code/logout');
 });
 
 it('applies a per-panel override to the logout and post-logout paths too', function (): void {

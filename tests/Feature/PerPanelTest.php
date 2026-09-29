@@ -37,7 +37,7 @@ it('mounts a panel okta routes at the paths its plugin configures (per panel)', 
     expect($uri('filament-okta.pathpanel.login'))->toBe('backoffice/sso/go')
         ->and($uri('filament-okta.pathpanel.callback'))->toBe('backoffice/sso/back')
         // an unset path still lands on the default under this panel's path
-        ->and($uri('filament-okta.pathpanel.logout'))->toBe('backoffice/authorization-code/logout');
+        ->and($uri('filament-okta.pathpanel.logout'))->toBe('backoffice/authorization-code/logout/redirect');
 });
 
 it('starts login through each panel own socialite driver', function (): void {

@@ -23,7 +23,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "bbs-lab/laravel-okta": "^2.0",
+        "bbs-lab/laravel-okta": "^3.0",
         "filament/filament": "^5.0",
         "illuminate/http": "^11.0 || ^12.0 || ^13.0",
         "illuminate/support": "^11.0 || ^12.0 || ^13.0",
